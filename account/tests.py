@@ -3,6 +3,8 @@ import jwt
 import json
 import bcrypt
 import django
+from unittest.mock import patch, MagicMock
+
 
 from django.test  import TestCase, Client, TransactionTestCase
 from django.http  import JsonResponse
@@ -15,9 +17,6 @@ class SignUpTest(TransactionTestCase):
     def setUp(self):
         with transaction.atomic():
             User.objects.create(email='gyudong1594@wecode.com', password='paper1594@')
-    
-    def tearDown(self):
-        User.objects.all().delete()
 
     def test_signup_success(self):
         client = Client()
@@ -96,6 +95,9 @@ class SignInTest(TestCase):
         password = 'paper1594'
         password = (bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())).decode('utf-8')
         User.objects.create(email='gyudong1594@wecode.com', password=password)
+    
+    def tearDown(self):
+        User.objects.all().delete()
 
     def test_signin_success(self):
         client = Client()
@@ -106,7 +108,8 @@ class SignInTest(TestCase):
         }
 
         reponse = client.post('/account/signin', json.dumps(user), content_type='application/json')
-        access_token = jwt.encode({'user_id':5}, SECRET_KEY, ALGORITHM)
+        access_token = jwt.encode({'user_id': 7}, SECRET_KEY, ALGORITHM)
+        print(access_token)
 
         self.assertEqual(reponse.status_code, 200)
         self.assertEqual(reponse.json(), {'message':'SUCCESS', 'access_token':access_token})
@@ -156,3 +159,51 @@ class SignInTest(TestCase):
 
         self.assertEqual(reponse.status_code, 400)
         self.assertEqual(reponse.json(), {'message':'INVALID_JSON'})
+
+class KakaoSignUpTest(TestCase):
+    @patch('account.views.requests')
+    def test_kakao_signup(self, mocked_request):
+        client = Client()
+        class MockResponse:
+            def json(self):
+                return {
+                    'id':1,
+                    'kakao_account':{
+                        'email':'test_email@kakao.com'
+                    }
+                }
+        
+        mocked_request.get = MagicMock(return_value = MockResponse())
+        headers = {'HTTP_Authorization':'kakao_token'}
+        access_token = jwt.encode({'user_id':2}, SECRET_KEY, ALGORITHM)
+        response = client.post('/account/kakaosignin', content_type='application/json', **headers)
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json(), {'message':'SUCCESS', 'access_token':access_token})
+
+class KakaoSignInTest(TestCase):
+    def setUp(self):
+        User.objects.create(email='gyudong1594@wecode.com', password='12345678')
+    
+    def tearDown(self):
+        User.objects.all().delete()
+
+    @patch('account.views.requests')
+    def test_kakao_signin(self, mocked_request):
+        client = Client()
+        class MockResponse:
+            def json(self):
+                return {
+                    'id':1,
+                    'kakao_account':{
+                        'email':'gyudong1594@wecode.com'
+                    }
+                }
+        
+        mocked_request.get = MagicMock(return_value = MockResponse())
+        headers = {'HTTP_Authorization':'kakao_token'}
+        access_token = jwt.encode({'user_id':1}, SECRET_KEY, ALGORITHM)
+        response = client.post('/account/kakaosignin', content_type='application/json', **headers)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'message':'SUCCESS', 'access_token':access_token})

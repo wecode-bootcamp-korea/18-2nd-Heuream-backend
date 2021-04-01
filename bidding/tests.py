@@ -71,7 +71,7 @@ class BiddingDetailViewTest(TestCase):
                 {
                     'bidded_size' :'255',
                     'bidded_price':'300000.00',
-                    'bidded_date' :'21/04/07'
+                    'bidded_date' :'21/04/08'
                 }
             ],
             'buy_bidding':[
