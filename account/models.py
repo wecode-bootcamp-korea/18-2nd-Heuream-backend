@@ -1,6 +1,6 @@
 from django.db import models
 
-from product.models import Size, Product
+from product.models import Size, Product, ProductSize
 
 class User(models.Model):
     email          = models.CharField(max_length=50, unique=True)
@@ -21,9 +21,9 @@ class Address(models.Model):
         db_table = 'addresses'
 
 class Wishlist(models.Model):
-    is_whished = models.BooleanField(default=True)
-    user       = models.ForeignKey(User, on_delete=models.CASCADE)
-    product    = models.ForeignKey(Product, on_delete=models.CASCADE)
+    is_wished   = models.BooleanField(default=True)
+    user         = models.ForeignKey(User, on_delete=models.CASCADE)
+    product_size = models.ForeignKey(ProductSize, on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'wishlists'
