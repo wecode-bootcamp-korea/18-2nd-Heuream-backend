@@ -61,30 +61,30 @@ class BiddingDetailViewTest(TestCase):
             'model_number'     :'test_model_number',
             'best_color'       :'test_best_color',
             'release_date'     :'2021-04-01',
-            'release_price'    :300000,
+            'release_price'    :'300000.00',
             'brand':'test_brand',
             'product_image_url':'www.naver.com',
-            'recent_price'     :300000,            
-            'direct_buy_price' :300000,
-            'direct_sale_price':300000,
+            'recent_price'     :'300000.00',            
+            'direct_buy_price' :'300000.00',
+            'direct_sale_price':'300000.00',
             'bidded':[
                 {
                     'bidded_size' :'255',
-                    'bidded_price':300000,
-                    'bidded_date' :'21/04/06'
+                    'bidded_price':'300000.00',
+                    'bidded_date' :'21/04/07'
                 }
             ],
             'buy_bidding':[
                 {
                     'buy_bidding_size':'255',
-                    'buy_bidding_price':300000,
+                    'buy_bidding_price':'300000.00',
                     'buy_bidding_quantity':3
                 }
             ],
             'sale_bidding':[
                 {
                     'sale_bidding_size':'255',
-                    'sale_bidding_price':300000,
+                    'sale_bidding_price':'300000.00',
                     'sale_bidding_quantity':3
                 }
             ]
