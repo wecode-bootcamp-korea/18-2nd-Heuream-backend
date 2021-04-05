@@ -1,11 +1,13 @@
-from django.views import View
-from django.http  import JsonResponse
+from django.views     import View
+from django.http      import JsonResponse
 from django.db.models import Min, Q, Prefetch, Count
+from django.db        import IntegrityError
 
-from product.models import Product, ProductImage, ProductSize, Brand, BrandLine
+from product.models import Product, ProductImage, ProductSize, Brand, BrandLine, Size, ProductSize
 from bidding.models import Bidding, Status
 from account.models import User, Wishlist
-from account.utils  import login_check
+from account.utils  import login_check, login_decorator
+
 
 class ProductFilterView(View):
     @login_check
@@ -84,3 +86,50 @@ class ProductFilterView(View):
         
         except ValueError:
             return JsonResponse({'message': 'INVALID LITERAL'}, status=400)
+
+class WishlistView(View):
+    @login_decorator
+    def get(self, request, product_id):
+        wish_count = Count('productsize__wishlist',filter=
+        Q(productsize__wishlist__user=request.user.id)&
+        Q(productsize__wishlist__is_wished=True)&
+        Q(productsize__wishlist__product_size__product=product_id))
+
+        sizes = Size.objects.annotate(is_wished=wish_count).all()
+
+        result = [
+            {
+                'size_id': size.id,
+                'size_name': size.size,
+                'is_wished': bool(size.is_wished)
+            } for size in sizes
+        ]
+        
+        return JsonResponse({'result': result}, status=200)
+
+    @login_decorator
+    def post(self, request, product_id):
+        try:
+            size_id = request.GET.get('size_id')
+
+            product_size = ProductSize.objects.get(product_id=product_id, size_id=size_id)
+            
+            if not size_id:
+                return JsonResponse({'message': 'TYPE SIZE_ID'}, status=400)
+            
+            wish_obj, flag = Wishlist.objects.get_or_create(user_id=request.user.id, product_size_id=product_size.id)
+            
+            if not flag:
+                wish_obj.is_wished = not wish_obj.is_wished
+                wish_obj.save()
+
+            return JsonResponse({'message': 'SUCCESS'}, status=200)
+        
+        except ValueError:
+            return JsonResponse({'message': 'INVALID SIZE_ID'}, status=400)
+        
+        except IntegrityError:
+            return JsonResponse({'message': 'OUT OF INDEX'}, status=400)
+        
+        except ProductSize.DoesNotExist:
+            return JsonResponse({'message': 'OUT OF SIZE INDEX'}, status=400)
