@@ -24,8 +24,8 @@ class Migration(migrations.Migration):
             old_name='line',
             new_name='brand_line',
         ),
-        migrations.AlterModelTable(
-            name='brandline',
-            table='brand_lines',
-        ),
+        # migrations.AlterModelTable(
+        #     name='brandline',
+        #     table='brand_lines',
+        # ),
     ]

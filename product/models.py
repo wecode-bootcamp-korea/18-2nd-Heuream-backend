@@ -13,7 +13,7 @@ class Brand(models.Model):
     class Meta:
         db_table = 'brands'
 
-class BrandLine(models.Model):
+class Line(models.Model):
     name  = models.CharField(max_length=45)
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE)
 
@@ -22,7 +22,7 @@ class BrandLine(models.Model):
 
 class SubLine(models.Model):
     name       = models.CharField(max_length=45)
-    brand_line = models.ForeignKey(BrandLine, on_delete=models.CASCADE)
+    brand_line = models.ForeignKey(Line, on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'sublines'
@@ -38,7 +38,7 @@ class Product(models.Model):
     sell_count    = models.PositiveIntegerField(default=0)
     category      = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     brand         = models.ForeignKey(Brand, on_delete=models.CASCADE)
-    brand_line    = models.ForeignKey(BrandLine, on_delete=models.SET_NULL, null=True)
+    brand_line    = models.ForeignKey(Line, on_delete=models.SET_NULL, null=True)
     sub_line      = models.ForeignKey(SubLine, on_delete=models.SET_NULL, null=True)
 
     class Meta:
