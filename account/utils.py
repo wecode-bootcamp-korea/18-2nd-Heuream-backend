@@ -10,7 +10,7 @@ def login_decorator(func):
     
     def wrapper(self, request, *arg, **karg):
         try: 
-            token = request.headers['Authorization']
+            token = request.headers.get('Authorization')
 
             if not token:
                 return JsonResponse({'message': 'Please sign in'}, status=400)
@@ -21,10 +21,13 @@ def login_decorator(func):
             return func(self, request, *arg, **karg)
         
         except jwt.exceptions.DecodeError:
-            return JsonResponse({'message': 'JsonDecodeError'}, status=400)
+            return JsonResponse({'message': 'JSONDECODEERROR'}, status=400)
 
         except User.DoesNotExist:
             return JsonResponse({'message': 'INVALID USER'}, status=400)
+
+        except KeyError:
+            return JsonResponse({'message': 'KEY ERROR'}, status=400)
 
     return wrapper
     
