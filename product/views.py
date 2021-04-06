@@ -133,3 +133,33 @@ class WishlistView(View):
         
         except ProductSize.DoesNotExist:
             return JsonResponse({'message': 'OUT OF SIZE INDEX'}, status=400)
+            
+class SearchView(View):
+    def get(self, request):
+        try:
+            search = request.GET.get('q')
+            products = Product.objects.filter(
+                Q(korean_name__icontains=search)|
+                Q(english_name__icontains=search)|
+                Q(models_number__icontains=search)|
+                Q(brand__name__icontains=search)|
+                Q(brand_line__name__icontains=search)|
+                Q(sub_line__name__icontains=search)
+            ).prefetch_related(Prefetch('productimage_set', to_attr='to_image'))
+
+            count = products.aggregate(count=Count('id'))
+
+            result = [
+                {   
+                    'product_id': product.id,
+                    'korean_name': product.korean_name,
+                    'english_name': product.english_name,
+                    'product_image_url': product.to_image[0].image_url,
+                } for product in products.order_by('-sell_count')[:10]
+            ]
+            result.append(count)
+
+            return JsonResponse({'result': result}, status=200)
+
+        except ValueError:
+            return JsonResponse({'message': 'VALUE_ERROR'}, status=400)
