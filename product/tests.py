@@ -13,7 +13,7 @@ from django.test   import Client
 
 
 class ProductFilterTest(TestCase):
-
+    
     def setUp(self):
         client = Client()
         Category.objects.create(
@@ -148,7 +148,7 @@ class ProductFilterTest(TestCase):
         Status.objects.all().delete()
         Address.objects.all().delete()
         User.objects.all().delete()
-    
+        
     def test_productfilter_get_success(self):
         client   = Client()
         response = client.get('/product?brand=1&brand_line=1&sort=Premium&q=jor', **{'HTTP_AUTHORIZATION':self.access_token, 'content_type' : 'application/json'})
@@ -495,6 +495,156 @@ class WishlistTest(TestCase):
         self.assertEqual(response.json(),
             {
                 'message': 'OUT OF SIZE INDEX'
+            }
+        )
+        self.assertEqual(response.status_code, 400)
+
+class SearchTest(TestCase):
+
+    def setUp(self):
+        client = Client()
+
+        Category.objects.create(
+            id   = 1,
+            name = '스니커즈'
+        )
+
+        Brand.objects.create(
+            id        = 1,
+            name      = 'Jordan',
+            image_url = 'https://heuream-images.s3.ap-northeast-2.amazonaws.com/heuream-brand_image/heuream-brand_image/d_5_dc2727e24e2f4741b4afde50f4f4a5f0.png'
+        )
+
+        BrandLine.objects.create(
+            id    = 1,
+            name  = '1',
+            brand = Brand.objects.get(id=1)
+        )
+        
+        Product.objects.bulk_create(
+            [
+                Product(
+                    id = 1,
+                    korean_name   = '엄청 이쁜 조던 1',
+                    english_name  = 'Ultra Super Jordan 1',
+                    models_number = 'WO123on',
+                    best_color    = 'REALRED',
+                    release_date  = '2222-12-01',
+                    release_price = 1299999.00,
+                    sell_count    = 0,
+                    category      = Category.objects.get(id=1),
+                    brand         = Brand.objects.get(id=1),
+                    brand_line    = BrandLine.objects.get(id=1)
+                ),
+                Product(
+                    id = 2,
+                    korean_name   = '조던 1 레트로 하이 OG 유니버시티 블루',
+                    english_name  = 'Jordan 1 Retro High OG University Blue',
+                    models_number = '555088-134',
+                    best_color    = 'WHITE/UNIVERSITY',
+                    release_date  = '2222-12-01',
+                    release_price = 1299999.00,
+                    sell_count    = 10,
+                    category      = Category.objects.get(id=1),
+                    brand         = Brand.objects.get(id=1),
+                    brand_line    = BrandLine.objects.get(id=1)
+                ),
+                Product(
+                    id = 3,
+                    korean_name   = '조던 6 레트로 카마인 2021',
+                    english_name  = 'Jordan 6 Retro Carmine 2021',
+                    models_number = 'CT8529-106',
+                    best_color    = 'WHITE/BLACK-CARMINE',
+                    release_date  = '2222-12-01',
+                    release_price = 1299999.00,
+                    sell_count    = 5,
+                    category      = Category.objects.get(id=1),
+                    brand         = Brand.objects.get(id=1),
+                    brand_line    = BrandLine.objects.get(id=1)
+                )
+            ]
+        )
+
+        ProductImage.objects.bulk_create(
+            [
+                ProductImage(
+                    id        = 1,
+                    image_url = 'https://kream-phinf.pstatic.net/MjAyMTAyMDNfMjY2/MDAxNjEyMzE3NDQ1NTAx.Oejtk7Y6zAvCrjhtND50c7JClIDq5g75DlJ391D3Rfkg.nukMbPmTeoKRGgSvfzBM9ZoF0JaqIw6Ge5TkWfncHHUg.PNG/p_56ffd2340d6c476da2f58c151e0205c2.png?type=m',
+                    product   = Product.objects.get(id=1)
+                ),
+                ProductImage(
+                    id        = 2,
+                    image_url = 'https://kream-phinf.pstatic.net/MjAyMTAxMjlfMjY1/MDAxNjExOTExMDk2MTk3.1MZuTEku1jlLYcE_HdTcgrqTDj-lTgnDxBnZG2kJem0g.oYV3sKYXXx6s9BV9RxJCu73ImL4ALZrGpqE6v_aanOcg.PNG/p_6e61fca4282c4d84ab532ba227686965.png?type=m',
+                    product   = Product.objects.get(id=2)
+                ),
+                ProductImage(
+                    id        = 3,
+                    image_url = 'https://kream-phinf.pstatic.net/MjAyMTAzMDhfMjQ4/MDAxNjE1MTMwODIxNTgy.VS50ej9g1IPn3FflN2ypdEkK09xTg2g6-UJWBdYs3sYg.NN0qISq4PfRzWFqqzRelxjWxQz9XTyZf7Ji3tGyyxQwg.PNG/p_6249c81c28db4270b9aa79d93ef4f245.png?type=m',
+                    product   = Product.objects.get(id=3)
+                )
+            ]
+        )
+
+    def tearDown(self):
+        Category.objects.all().delete()
+        Brand.objects.all().delete()
+        BrandLine.objects.all().delete()
+        Product.objects.all().delete()
+        ProductImage.objects.all().delete()
+        Wishlist.objects.all().delete()
+        Bidding.objects.all().delete()
+        Status.objects.all().delete()
+        Address.objects.all().delete()
+        User.objects.all().delete()
+
+    def test_search_get_success(self):
+        client = Client()
+        response = client.get('/product/search?q=j')
+        self.assertEqual(response.json(),
+            {
+                'result': [
+                    {
+                        'product_id': 2,
+                        'korean_name': '조던 1 레트로 하이 OG 유니버시티 블루',
+                        'english_name': 'Jordan 1 Retro High OG University Blue',
+                        'product_image_url': 'https://kream-phinf.pstatic.net/MjAyMTAxMjlfMjY1/MDAxNjExOTExMDk2MTk3.1MZuTEku1jlLYcE_HdTcgrqTDj-lTgnDxBnZG2kJem0g.oYV3sKYXXx6s9BV9RxJCu73ImL4ALZrGpqE6v_aanOcg.PNG/p_6e61fca4282c4d84ab532ba227686965.png?type=m'
+                    },
+                    {
+                        'product_id': 3,
+                        'korean_name': '조던 6 레트로 카마인 2021',
+                        'english_name': 'Jordan 6 Retro Carmine 2021',
+                        'product_image_url': 'https://kream-phinf.pstatic.net/MjAyMTAzMDhfMjQ4/MDAxNjE1MTMwODIxNTgy.VS50ej9g1IPn3FflN2ypdEkK09xTg2g6-UJWBdYs3sYg.NN0qISq4PfRzWFqqzRelxjWxQz9XTyZf7Ji3tGyyxQwg.PNG/p_6249c81c28db4270b9aa79d93ef4f245.png?type=m'
+                    },
+                    {
+                        'product_id': 1,
+                        'korean_name': '엄청 이쁜 조던 1',
+                        'english_name': 'Ultra Super Jordan 1',
+                        'product_image_url': 'https://kream-phinf.pstatic.net/MjAyMTAyMDNfMjY2/MDAxNjEyMzE3NDQ1NTAx.Oejtk7Y6zAvCrjhtND50c7JClIDq5g75DlJ391D3Rfkg.nukMbPmTeoKRGgSvfzBM9ZoF0JaqIw6Ge5TkWfncHHUg.PNG/p_56ffd2340d6c476da2f58c151e0205c2.png?type=m'
+                    },
+                    {
+                        'count':3
+                    }
+                ]
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_search_get_fail(self):
+        client = Client()
+        response = client.get('/product/search?q=wecode')
+        self.assertEqual(response.json(),
+            {
+                'result': [{'count': 0}]
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+    
+    def test_search_get_not_found_value_error(self):
+        client = Client()
+        response = client.get('/product/search?')
+        self.assertEqual(response.json(),
+            {
+                'message': 'VALUE_ERROR'
             }
         )
         self.assertEqual(response.status_code, 400)
