@@ -63,3 +63,17 @@ class BiddingDetailBuyView(View):
         }
 
         return JsonResponse({'result':result}, status = 200)
+        
+class BiddingDetailSaleView(View):
+    @login_decorator
+    def get(self, request):
+        product_id = request.GET.get("product_id")
+        product    = Product.objects.get(id=product_id)
+        productsizefilter = ProductSize.objects.filter(product=product)
+
+        result = [{
+            'size'              : i.size.size,
+            'sale_bidding_price' : round(Bidding.objects.filter(product_size=i, status=1, bidding_type=1).order_by('-price')[0].price, 2) if Bidding.objects.filter(product_size=i, status=1, bidding_type=1) else ""
+            } for i in productsizefilter]
+
+        return JsonResponse({'result':result}, status = 200)

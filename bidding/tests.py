@@ -106,11 +106,23 @@ class BiddingDetailViewTest(TestCase):
             {
                 'size':'255',
                 'buy_bidding_price':'300000.00'
+            }]
+        }
+    })
+
+if __name__ == '__main__':  
+    unittest.main()
+
+    def test_bidding_detail_view_sale_success(self):
+        header = {'HTTP_Authorization':"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxfQ.IOGSFnezOAETXOTTFMJYwb7nv6lG14FqtahkW9ATL7s"}
+        response = client.get(f'/bidding/sale',{'product_id':1}, **header)
+        self.assertEqual(response.json(),{'result':[
+            {
+                'size':'255',
+                'sale_bidding_price':'300000.00'
             }
         ]
-    }
-})
-
+    })
 
 if __name__ == '__main__':  
     unittest.main()
