@@ -4,6 +4,7 @@ from django.views     import View
 from django.http      import JsonResponse
 from django.db.models import Count
 
+from account.utils  import login_decorator
 from bidding.models import Bidding
 from product.models import Product, ProductImage, ProductSize
 
@@ -46,3 +47,19 @@ class BiddingDetailView(View):
         
         except Product.DoesNotExist:
             return JsonResponse({'message':'INVALID_PAGE'}, status=400)
+
+class BiddingDetailBuyView(View):
+    @login_decorator
+    def get(self, request):
+        product_id        = request.GET.get("product_id")
+        productsizefilter = ProductSize.objects.filter(product_id=product_id)
+
+        result = {
+            'cheap_buy_bidding_price':round(Bidding.objects.filter(product_size__product_id=product_id, status=1, bidding_type=0).order_by('price')[0].price, 2),
+            'buy_bidding' :[{
+                'size' : i.size.size,
+                'buy_bidding_price' : round(Bidding.objects.filter(product_size=i, status=1, bidding_type=0).order_by('price')[0].price, 2) if Bidding.objects.filter(product_size=i, status=1, bidding_type=0) else ""
+            } for i in productsizefilter]
+        }
+
+        return JsonResponse({'result':result}, status = 200)
